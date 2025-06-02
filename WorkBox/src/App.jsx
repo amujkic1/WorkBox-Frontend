@@ -9,19 +9,13 @@ import Topbar from './components/Topbar';
 import Footer from './components/Footer';
 import Dashboard from './components/Dashboard';
 import AllCards from './components/AllCards';
+import Login from './components/Login';
 
 function App() {
   return (
-    <div id="wrapper">
-      <Sidebar />
-      <div id="content-wrapper" className="d-flex flex-column">
-        <div id="content">
-          <Topbar />
-          <AllCards />
-        </div>
-        <Footer />
-      </div>
-    </div>
+   
+      <Login />
+     
   );
 }
 
