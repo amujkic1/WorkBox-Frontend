@@ -1,5 +1,5 @@
 import React from 'react';
-import DashboardCards from '../components/DashboardCards';
+import DashboardCards from './DashboardCards';
 
 export default function Dashboard() {
   return (

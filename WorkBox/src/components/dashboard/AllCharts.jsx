@@ -1,4 +1,4 @@
-import { AreaChart, BarChart, DonutChart } from '../components/Charts';
+import { AreaChart, BarChart, DonutChart } from './Charts';
 
 const AllCharts = () => {
   return (

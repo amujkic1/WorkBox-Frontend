@@ -8,7 +8,7 @@ import {
   BasicCard,
   DropdownCard,
   CollapsableCard
-} from '../components/Cards';
+} from './Cards';
 
 
 const AllCards = () => {
