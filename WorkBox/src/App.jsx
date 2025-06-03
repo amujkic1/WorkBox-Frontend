@@ -9,6 +9,7 @@ import Footer from './components/common/Footer';
 import Dashboard from './components/dashboard/Dashboard';
 import AllCards from './components/dashboard/AllCards';
 import Login from './pages/Login';
+import OpeningForm from './components/forms/OpeningForm';
 
 function App() {
   const location = useLocation();
@@ -25,6 +26,7 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cards" element={<AllCards />} />
+            <Route path='/opening' element={<OpeningForm />} />
           </Routes>
         </div>
         {showLayout && <Footer />}
