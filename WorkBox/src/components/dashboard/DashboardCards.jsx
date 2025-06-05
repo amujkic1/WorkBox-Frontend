@@ -1,24 +1,42 @@
-import React from 'react';
-
-export default function DashboardCards() {
-  return (
-    <div className="row">
-      <div className="col-xl-3 col-md-6 mb-4">
-        <div className="card border-left-primary shadow h-100 py-2">
-          <div className="card-body">
-            <div className="row no-gutters align-items-center">
-              <div className="col mr-2">
-                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Earnings (Monthly)</div>
-                <div className="h5 mb-0 font-weight-bold text-gray-800">$40,000</div>
-              </div>
-              <div className="col-auto">
-                <i className="fas fa-calendar fa-2x text-gray-300"></i>
-              </div>
-            </div>
-          </div>
+const DashboardCards = ({ onOpenForm, onOpenAppForm }) => (
+  <div className="row mb-4">
+    <div className="col-md-3">
+      <div className="card shadow-lg text-center" onClick={onOpenForm} style={{ cursor: 'pointer' }}>
+        <div className="card-body">
+          <div className="card-icon mb-2" style={{ fontSize: '2rem', color: '#0d6efd' }}>📂</div>
+          <h5>Active openings</h5>
+          <h3>5</h3>
         </div>
       </div>
-      {/* Add more cards similarly */}
     </div>
-  );
-}
+    <div className="col-md-3">
+      <div className="card shadow-lg text-center" onClick={onOpenAppForm} style={{ cursor: 'pointer' }}>
+        <div className="card-body">
+          <div className="card-icon mb-2" style={{ fontSize: '2rem', color: '#0d6efd' }}>📥</div>
+          <h5>Applications</h5>
+          <h3>12</h3>
+        </div>
+      </div>
+    </div>
+    <div className="col-md-3">
+      <div className="card shadow-lg text-center">
+        <div className="card-body">
+          <div className="card-icon mb-2" style={{ fontSize: '2rem', color: '#0d6efd' }}>🗂️</div>
+          <h5>Pending requests</h5>
+          <h3>8</h3>
+        </div>
+      </div>
+    </div>
+    <div className="col-md-3">
+      <div className="card shadow-lg text-center">
+        <div className="card-body">
+          <div className="card-icon mb-2" style={{ fontSize: '2rem', color: '#0d6efd' }}>👨‍💼</div>
+          <h5>Employees</h5>
+          <h3>73</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+export default DashboardCards;
