@@ -5,18 +5,14 @@ import OpeningForm from '../components/forms/OpeningForm';
 import ApplicationList from '../components/dashboard/ApplicationList';
 import DashboardCards from '../components/dashboard/DashboardCards';
 import OpeningTable from '../components/dashboard/OpeningTable';
+import Sidebar from '../components/common/Sidebar';
 
 const HRDashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [showAppModal, setShowAppModal] = useState(false);
   const [openings, setOpenings] = useState([]);
   const [applications, setApplications] = useState([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [conditions, setConditions] = useState([]);
-  const [benefits, setBenefits] = useState([]);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const fetchOpenings = () => {
@@ -64,7 +60,7 @@ const handleCreateOpening = (data) => {
       startDate: data.startDate,
       endDate: data.endDate,
       //user ce inace biti hr koji kreira konkurs, implementirati poslije logina
-      userId: 1
+      //userId: 1
     })
   })
     .then(async response => {
@@ -72,12 +68,15 @@ const handleCreateOpening = (data) => {
         const result = await response.json();
         setShowModal(false); 
         fetchOpenings();     
-        console.log('Payload ', result);
+        setShowSuccessAlert(true); 
+        setTimeout(() => setShowSuccessAlert(false), 4000);
       } else {
-        setErrorMessage("Neuspješno kreiranje konkursa.");
+        setErrorMessage("Failed to create an opening.");
+        setTimeout(() => setErrorMessage(''), 4000);
+        setShowModal(false); 
       }
     })
-    .catch(() => setErrorMessage('Došlo je do greške prilikom slanja podataka.'));
+    .catch(() => setErrorMessage('Failed to create an opening.'));
 };
 
 
@@ -100,6 +99,24 @@ const handleCreateOpening = (data) => {
       </nav>
 
       <div className="container mt-4">
+
+
+
+        {showSuccessAlert && (
+          <div className="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <strong>Success!</strong> Opening has been successfully created.
+            <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close" onClick={() => setShowSuccessAlert(false)}></button>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <strong>Error!</strong> {errorMessage}
+            <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close" onClick={() => setErrorMessage('')}></button>
+          </div>
+        )}
+
+
         <DashboardCards onOpenForm={() => setShowModal(true)} onOpenAppForm={() => setShowAppModal(true)} />
         <div className="row">
           <div className="col-xl-8 col-lg-7"><AreaChart /></div>
