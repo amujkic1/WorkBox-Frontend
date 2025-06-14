@@ -13,10 +13,13 @@ import OpeningForm from './components/forms/OpeningForm';
 import HRDashboard from './pages/HRDashboard';
 import ApplicationList from './components/dashboard/ApplicationList';
 
+import FinanceDashboard from './pages/FinanceDashboard';
+
+
 function App() {
   const location = useLocation();
-  const showSide = location.pathname !== '/'; 
-  const showTop = location.pathname != '/hr';
+  const showSide = location.pathname !== '/' && !location.pathname.startsWith('/finance'); 
+  const showTop = location.pathname != '/hr' && !location.pathname.startsWith('/finance');
 
   return (
     <div id="wrapper">
@@ -30,9 +33,11 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cards" element={<AllCards />} />
             <Route path='/hr' element={<HRDashboard/>} />
+            <Route path="/finance/*" element={<FinanceDashboard />} />
             <Route path='/app' element={<ApplicationList/>}/>
           </Routes>
         </div>
+
         {showSide && <Footer />}
       </div>
     </div>
