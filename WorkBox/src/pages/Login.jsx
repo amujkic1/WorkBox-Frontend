@@ -1,9 +1,42 @@
-import React from 'react';
-import '../assets/sb-admin-2.css'; 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import '@fortawesome/fontawesome-free/css/all.min.css';
+import React, { useState } from 'react'
+import '../assets/sb-admin-2.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import '@fortawesome/fontawesome-free/css/all.min.css'
+import { useNavigate } from 'react-router-dom'
+import Cookies from 'js-cookie'
 
 const Login = () => {
+
+const [email, setEmail] = useState('')
+const [password, setPassword] = useState('')
+const [errorMessage, setErrorMessage] = useState('');
+
+const handleLogin = (e) => {
+  e.preventDefault();
+  fetch('http://localhost:8080/auth/authenticate', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({email, password})
+  })
+  .then(async response => {
+    if(response.ok){
+      const { token } = await response.json()
+      console.log("Login successfull")
+      Cookies.set("token", token)
+    } else {
+      return response.json().then(data => {
+        console.error(data.message)
+        throw new Error(data.message)
+      })
+    }
+  })
+  .catch(error => {
+    console.error('Login error:', error);
+    setErrorMessage('Failed to login. Please try again.');
+  });
+}
+
   return (
     <div className="bg-gradient-primary" style={{ minHeight: '100vh' }}>
       <div className="container">
@@ -18,10 +51,12 @@ const Login = () => {
                       <div className="text-center">
                         <h1 className="h4 text-gray-900 mb-4">Welcome Back!</h1>
                       </div>
-                      <form className="user">
+                      <form className="user" onSubmit={handleLogin}>
                         <div className="form-group">
                           <input
                             type="email"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
                             className="form-control form-control-user"
                             id="exampleInputEmail"
                             aria-describedby="emailHelp"
@@ -31,6 +66,8 @@ const Login = () => {
                         <div className="form-group">
                           <input
                             type="password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
                             className="form-control form-control-user"
                             id="exampleInputPassword"
                             placeholder="Password"
