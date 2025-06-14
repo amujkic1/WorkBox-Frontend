@@ -19,7 +19,7 @@ import FinanceDashboard from './pages/FinanceDashboard';
 
 function App() {
   const location = useLocation();
-  const showSide = location.pathname !== '/' && !location.pathname.startsWith('/finance'); 
+  const showSide = location.pathname !== '/' && !location.pathname.startsWith('/finance') && location.pathname != '/register';  
   const showTop = location.pathname != '/hr' && !location.pathname.startsWith('/finance');
 
   return (
