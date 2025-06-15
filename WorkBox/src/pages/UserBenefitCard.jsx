@@ -41,7 +41,7 @@ const UserBenefitCard = ({ user }) => {
 
     try {
       // Briši obrisane
-      await Promise.all(deletedIds.map(id => axios.delete(`http://localhost:8084/employee_benefit/${id}`)));
+      await Promise.all(deletedIds.map(id => axios.delete(`http://localhost:8080/finance/employee_benefit/${id}`)));
 
       // Ažuriraj izmjene
       await Promise.all(
@@ -54,7 +54,7 @@ const UserBenefitCard = ({ user }) => {
             original.details !== b.details;
 
           if (isModified) {
-            await axios.put(`http://localhost:8084/employee_benefit/${b.employeeBenefitId}`, {
+            await axios.put(`http://localhost:8080/finance/employee_benefit/${b.employeeBenefitId}`, {
               ...b,
               user: {
                 userId: user.userId,
