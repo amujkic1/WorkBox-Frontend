@@ -1,19 +1,26 @@
-import React, { useState } from 'react';
-import axios from 'axios'; // Importovanje axios-a
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 // Komponente za prikaz izvještaja
 import TimesheetReport from '../components/finance/TimesheetReport';
 import EmployeeStatusReport from '../components/finance/EmployeeStatusReport';
 
 export default function FinanceReports() {
-  const [selectedReport, setSelectedReport] = useState(''); // Odabrani izvještaj
-  const [fromDate, setFromDate] = useState(''); // Datum početka
-  const [toDate, setToDate] = useState(''); // Datum kraja
-  const [reportData, setReportData] = useState(null); // Podaci za izvještaj
-  const [errorMessage, setErrorMessage] = useState(''); // Poruka o grešci
-  const [isCardCollapsed, setIsCardCollapsed] = useState(false); // Da li je kartica sužena?
+  const [selectedReport, setSelectedReport] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [timesheetData, setTimesheetData] = useState(null);
+  const [employeeStatusData, setEmployeeStatusData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isCardCollapsed, setIsCardCollapsed] = useState(false);
 
-  // Funkcija za generisanje izvještaja
+  // Reset podataka kada se promijeni tip izvještaja
+  useEffect(() => {
+    setTimesheetData(null);
+    setEmployeeStatusData(null);
+    setErrorMessage('');
+  }, [selectedReport]);
+
   const generateReport = async () => {
     if (selectedReport === 'Timesheet Report') {
       if (!fromDate || !toDate) {
@@ -21,42 +28,38 @@ export default function FinanceReports() {
         return;
       }
 
-      setErrorMessage('');
       try {
-        const response = await axios.get(`http://localhost:8080/finance/timesheet_report`, {
-          params: { fromDate, toDate }, // Parametri za URL
+        const response = await axios.get('http://localhost:8080/finance/timesheet_report', {
+          params: { fromDate, toDate },
         });
-        setReportData(response.data); // Postavljanje podataka za izvještaj
+        setTimesheetData(response.data);
+        setErrorMessage('');
       } catch (error) {
-        console.error('Error generating the report', error);
-        setErrorMessage('An error occurred while loading the report.');
+        console.error('Error generating the Timesheet Report:', error);
+        setErrorMessage('An error occurred while loading the Timesheet Report.');
       }
-    } 
-    else if (selectedReport === 'Employee Status Report') {
+    } else if (selectedReport === 'Employee Status Report') {
       try {
         const response = await axios.get('http://localhost:8080/finance/test2');
-        setReportData(response.data); // Postavljanje podataka za izvještaj
+        setEmployeeStatusData(response.data);
+        setErrorMessage('');
       } catch (error) {
-        console.error('Error generating the report', error);
-        setErrorMessage('An error occurred while loading the report.');
+        console.error('Error generating the Employee Status Report:', error);
+        setErrorMessage('An error occurred while loading the Employee Status Report.');
       }
     }
   };
 
-  // Toggle funkcija za sužavanje/proširivanje kartice
   const toggleCardCollapse = () => {
-    setIsCardCollapsed(prevState => !prevState);
+    setIsCardCollapsed(prev => !prev);
   };
 
   return (
     <div className="container-fluid px-0">
       <h2 className="mb-3">Financial reports</h2>
 
-      {/* Izbor tipa izvještaja i dugme */}
       <div className="card mb-4 border-1 border-gradient-dark rounded shadow-sm">
-
         <div className="card-body">
-          {/* Gornji desni ugao sa strelicom za sužavanje */}
           <div className="d-flex justify-content-between align-items-center">
             <label htmlFor="reportType" className="form-label">Select report type:</label>
             <button
@@ -68,10 +71,8 @@ export default function FinanceReports() {
             </button>
           </div>
 
-          {/* Sužavanje kartice */}
           {!isCardCollapsed && (
             <div>
-              {/* Izbor tipa izvještaja */}
               <div className="mb-3">
                 <select
                   id="reportType"
@@ -85,7 +86,6 @@ export default function FinanceReports() {
                 </select>
               </div>
 
-              {/* Polja za unos datuma (samo za Timesheet Report) */}
               {selectedReport === 'Timesheet Report' && (
                 <>
                   <div className="mb-3">
@@ -112,31 +112,27 @@ export default function FinanceReports() {
                 </>
               )}
 
-              {/* Prikaz poruke o grešci */}
               {errorMessage && <p className="text-danger">{errorMessage}</p>}
 
-              {/* Dugme za generisanje izvještaja */}
-              <div>
-                <button
-                  onClick={generateReport}
-                  disabled={!selectedReport} // Dugme je onemogućeno dok se ne izabere tip izvještaja
-                  className="btn btn-primary"
-                >
-                  Generate report
-                </button>
-              </div>
+              <button
+                onClick={generateReport}
+                disabled={!selectedReport}
+                className="btn btn-primary"
+              >
+                Generate report
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Prikaz rezultata izvještaja */}
-      {reportData && selectedReport === 'Timesheet Report' && (
-        <TimesheetReport data={reportData} />
+      {/* Prikaz izvještaja */}
+      {selectedReport === 'Timesheet Report' && timesheetData && (
+        <TimesheetReport data={timesheetData} />
       )}
 
-      {reportData && selectedReport === 'Employee Status Report' && (
-        <EmployeeStatusReport data={reportData} />
+      {selectedReport === 'Employee Status Report' && employeeStatusData && (
+        <EmployeeStatusReport data={employeeStatusData} />
       )}
     </div>
   );
