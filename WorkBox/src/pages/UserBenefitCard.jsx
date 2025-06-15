@@ -10,17 +10,20 @@ const UserBenefitCard = ({ user }) => {
   const [deletedIds, setDeletedIds] = useState([]);
   const [message, setMessage] = useState('');
 
+  // Funkcija za promjenu polja
   const handleFieldChange = (index, field, value) => {
     const updated = [...benefits];
     updated[index] = { ...updated[index], [field]: value };
     setBenefits(updated);
   };
 
+  // Funkcija za brisanje benefita
   const handleDelete = (id) => {
     setDeletedIds([...deletedIds, id]);
     setBenefits(benefits.filter(b => b.employeeBenefitId !== id));
   };
 
+  // Funkcija za provjeru promjena
   const hasChanges = () => {
     if (deletedIds.length > 0) return true;
     if (benefits.length !== originalBenefits.length - deletedIds.length) return true;
@@ -36,7 +39,19 @@ const UserBenefitCard = ({ user }) => {
     });
   };
 
+  // Funkcija za validaciju
+  const validateFields = () => {
+    return benefits.every(b => b.type && b.status); // Provjeravamo da su oba polja ispunjena
+  };
+
+  // Funkcija za ažuriranje podataka
   const handleUpdate = async () => {
+    if (!validateFields()) {
+      setMessage('Type and status must be filled in.');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+
     if (!hasChanges()) return;
 
     try {
@@ -69,14 +84,15 @@ const UserBenefitCard = ({ user }) => {
       setOriginalBenefits(benefits);
       setDeletedIds([]);
       setIsEditing(false);
-      setMessage('Uspješno ažurirano!');
+      setMessage('Updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage('Došlo je do greške prilikom ažuriranja.');
+      setMessage('An error occurred while updating.');
       setTimeout(() => setMessage(''), 3000);
     }
   };
 
+  // Funkcija za otkazivanje izmjena
   const handleCancel = () => {
     setBenefits(originalBenefits);
     setDeletedIds([]);
@@ -87,7 +103,6 @@ const UserBenefitCard = ({ user }) => {
   return (
     <div className="col-12 mb-4">
       <div className="user-benefit-card">
-        
         <div className="user-benefit-header">
           <h5 className="user-benefit-header-text">
             {user.firstName} {user.lastName}
@@ -122,13 +137,13 @@ const UserBenefitCard = ({ user }) => {
                 onClick={handleUpdate}
                 disabled={!hasChanges()}
               >
-                Spremi promjene
+                Save changes
               </button>
               <button
                 className="btn btn-secondary btn-sm user-benefit-button"
                 onClick={handleCancel}
               >
-                Otkaži
+                Cancel
               </button>
             </>
           ) : (
@@ -139,7 +154,7 @@ const UserBenefitCard = ({ user }) => {
                 setOriginalBenefits(benefits);
               }}
             >
-              Ažuriraj
+              Update
             </button>
           )}
         </div>

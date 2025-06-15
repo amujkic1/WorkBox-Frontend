@@ -10,23 +10,22 @@ export default function EmployeeBenefits() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  useEffect(() => {
-    const fetchData = () => {
-      axios
-        .get('http://localhost:8080/finance/employee_benefits/grouped_by_user')
-        .then(response => {
-          setUserBenefits(response.data);
-          setLoading(false);
-        })
-        .catch(() => {
-          setError('Došlo je do greške prilikom učitavanja podataka.');
-          setLoading(false);
-        });
-    };
+  const fetchData = () => {
+    setLoading(true);
+    axios
+      .get('http://localhost:8080/finance/employee_benefits/grouped_by_user')
+      .then(response => {
+        setUserBenefits(response.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('An error occurred while loading data.');
+        setLoading(false);
+      });
+  };
 
-    fetchData();
-    const intervalId = setInterval(fetchData, 5000);
-    return () => clearInterval(intervalId);
+  useEffect(() => {
+    fetchData(); // učitavanje samo jednom na početku
   }, []);
 
   const filteredUsers = userBenefits.filter(user => {
@@ -41,7 +40,7 @@ export default function EmployeeBenefits() {
       <div className="d-flex mb-4 gap-2 align-items-center">
         <input
           type="text"
-          placeholder="Pretraži po imenu ili prezimenu"
+          placeholder="Search by first or last name"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           style={{
@@ -58,16 +57,16 @@ export default function EmployeeBenefits() {
           onClick={() => setShowAddForm(true)}
           style={{ whiteSpace: 'nowrap' }}
         >
-          Dodaj benefit
+          Add benefits
         </button>
       </div>
 
       {loading ? (
-        <p>Učitavanje...</p>
+        <p>Loading...</p>
       ) : error ? (
         <p>{error}</p>
       ) : filteredUsers.length === 0 ? (
-        <p>Nema dostupnih podataka.</p>
+        <p>No data available.</p>
       ) : (
         <div className="row">
           {filteredUsers.map(user => (
@@ -76,7 +75,12 @@ export default function EmployeeBenefits() {
         </div>
       )}
 
-      {showAddForm && <AddBenefitsForm onClose={() => setShowAddForm(false)} />}
+      {showAddForm && (
+        <AddBenefitsForm
+          onClose={() => setShowAddForm(false)}
+          onSuccess={fetchData} 
+        />
+      )}
     </div>
   );
 }
