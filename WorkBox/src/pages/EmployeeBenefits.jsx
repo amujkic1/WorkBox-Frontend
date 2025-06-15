@@ -1,36 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import UserBenefitCard from './UserBenefitCard';
-
-const AddBenefitsForm = ({ onClose }) => {
-  // Za sada samo osnovni modal i zatvaranje
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '8px',
-        width: '90%',
-        maxWidth: '600px',
-        maxHeight: '80vh',
-        overflowY: 'auto',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
-      }}>
-        <h3>Dodaj nove benefite</h3>
-        <p>Ovdje će biti forma za unos benefita...</p>
-        <button className="btn btn-secondary" onClick={onClose}>Zatvori</button>
-      </div>
-    </div>
-  );
-};
+import AddBenefitsForm from '../components/finance/AddBenefitsForm';
 
 export default function EmployeeBenefits() {
   const [userBenefits, setUserBenefits] = useState([]);
@@ -39,26 +10,23 @@ export default function EmployeeBenefits() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
+  const fetchData = () => {
+    setLoading(true);
+    axios
+      .get('http://localhost:8080/finance/employee_benefits/grouped_by_user')
+      .then(response => {
+        setUserBenefits(response.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('An error occurred while loading data.');
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
-    const fetchData = () => {
-      axios.get('http://localhost:8084/employee_benefits/grouped_by_user')
-        .then(response => {
-          setUserBenefits(response.data);
-          setLoading(false);
-        })
-        .catch(() => {
-          setError('Došlo je do greške prilikom učitavanja podataka.');
-          setLoading(false);
-        });
-    };
-
-    fetchData();
-    const intervalId = setInterval(fetchData, 5000);
-    return () => clearInterval(intervalId);
+    fetchData(); // učitavanje samo jednom na početku
   }, []);
-
-  if (loading) return <p>Učitavanje...</p>;
-  if (error) return <p>{error}</p>;
 
   const filteredUsers = userBenefits.filter(user => {
     const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
@@ -67,12 +35,12 @@ export default function EmployeeBenefits() {
 
   return (
     <div>
-      <h2 className='mb-4'>Employee benefits</h2>
-      
+      <h2 className="mb-4">Employee benefits</h2>
+
       <div className="d-flex mb-4 gap-2 align-items-center">
         <input
           type="text"
-          placeholder="Pretraži po imenu ili prezimenu"
+          placeholder="Search by first or last name"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           style={{
@@ -89,12 +57,16 @@ export default function EmployeeBenefits() {
           onClick={() => setShowAddForm(true)}
           style={{ whiteSpace: 'nowrap' }}
         >
-          Dodaj benefit
+          Add benefits
         </button>
       </div>
 
-      {filteredUsers.length === 0 ? (
-        <p>Nema dostupnih podataka.</p>
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : filteredUsers.length === 0 ? (
+        <p>No data available.</p>
       ) : (
         <div className="row">
           {filteredUsers.map(user => (
@@ -103,7 +75,12 @@ export default function EmployeeBenefits() {
         </div>
       )}
 
-      {showAddForm && <AddBenefitsForm onClose={() => setShowAddForm(false)} />}
+      {showAddForm && (
+        <AddBenefitsForm
+          onClose={() => setShowAddForm(false)}
+          onSuccess={fetchData} 
+        />
+      )}
     </div>
   );
 }
