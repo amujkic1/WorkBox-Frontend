@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom'
 import Cookies from 'js-cookie'
+import { jwtDecode } from "jwt-decode";
 
 const Register = () => {
 
@@ -35,6 +36,8 @@ const Register = () => {
         const { token } = await response.json()
         console.log("Registration successfull")
         Cookies.set("token", token)
+        const decodedToken = jwtDecode(token);
+        console.log("Decoded token:", decodedToken);
       } else {
         return response.json().then(data => {
           console.error(data.message)
