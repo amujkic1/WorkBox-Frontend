@@ -15,6 +15,7 @@ import HRDashboard from './pages/HRDashboard';
 import ApplicationList from './components/dashboard/ApplicationList';
 
 import FinanceDashboard from './pages/FinanceDashboard';
+import BusinessDashboard from './pages/BusinessDashboard';
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Route path='/hr' element={<HRDashboard/>} />
             <Route path="/finance/*" element={<FinanceDashboard />} />
             <Route path='/app' element={<ApplicationList/>}/>
+            <Route path='/business' element={<BusinessDashboard />} />
           </Routes>
         </div>
 
