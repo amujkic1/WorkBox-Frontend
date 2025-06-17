@@ -16,16 +16,20 @@ import ApplicationList from './components/dashboard/ApplicationList';
 
 import FinanceDashboard from './pages/FinanceDashboard';
 import BusinessDashboard from './pages/BusinessDashboard';
+import Records from './pages/Records';
+import SidebarHR from './components/common/SidebarHR';
 
 
 function App() {
   const location = useLocation();
-  const showSide = location.pathname !== '/' && !location.pathname.startsWith('/finance') && location.pathname != '/register';  
+  const showSide = location.pathname !== '/' && !location.pathname.startsWith('/finance') && location.pathname != '/register' && location.pathname != '/hr' && location.pathname != '/records' && !location.pathname.startsWith('/finance');  
   const showTop = location.pathname != '/hr' && !location.pathname.startsWith('/finance');
+  const isHR = location.pathname === '/hr' || location.pathname === '/records'; 
 
   return (
     <div id="wrapper">
       {showSide && <Sidebar />}
+      {isHR && <SidebarHR />}
       <div id="content-wrapper" className="d-flex flex-column">
         <div id="content">
 
@@ -38,6 +42,7 @@ function App() {
             <Route path="/finance/*" element={<FinanceDashboard />} />
             <Route path='/app' element={<ApplicationList/>}/>
             <Route path='/business' element={<BusinessDashboard />} />
+            <Route path='/records' element={<Records/>}/>
           </Routes>
         </div>
 
