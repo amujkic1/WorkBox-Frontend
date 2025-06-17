@@ -1,4 +1,26 @@
-const ApplicationList = ({ applications }) => {
+const ApplicationList = ({ applications, onStatusChange }) => {
+
+  const handleApplication = (id, status) => {
+    fetch(`http://localhost:8080/hr/applications/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({status})
+    })
+      .then(async response => {
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Application updated", result);
+          onStatusChange()
+        } else {
+          console.log("Failed to update application")
+        }
+      })
+      .catch(() => setErrorMessage('Failed to update application.'));
+  };
+
   return (
     <div className="card-body">
       <table className="table table-hover align-middle text-center">
@@ -51,12 +73,14 @@ const ApplicationList = ({ applications }) => {
                     <button
                       className="btn btn-sm btn-outline-success"
                       title="Accept"
+                      onClick={() => handleApplication(app.id, "Accepted")}
                     >
                       ✔️
                     </button>
                     <button
                       className="btn btn-sm btn-outline-danger"
                       title="Decline"
+                      onClick={() => handleApplication(app.id, "Rejected")}
                     >
                       ❌
                     </button>
