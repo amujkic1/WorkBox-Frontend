@@ -40,7 +40,7 @@ export default function FinanceReports() {
       }
     } else if (selectedReport === 'Employee Status Report') {
       try {
-        const response = await axios.get('http://localhost:8080/finance/test2');
+        const response = await axios.get('http://localhost:8080/finance/employee_status_report');
         setEmployeeStatusData(response.data);
         setErrorMessage('');
       } catch (error) {
