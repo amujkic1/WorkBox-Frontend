@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import AddProjectForm from './AddProjectForm';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const BusinessDashboard = () => {
   const [projects, setProjects] = useState([]);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const fetchProjects = () => {
     fetch('http://localhost:8082/projects')
@@ -16,36 +19,69 @@ const BusinessDashboard = () => {
       .catch(err => console.error('Error fetching projects:', err));
   };
 
+  const handleProjectAdded = () => {
+    fetchProjects();
+    setShowSuccessAlert(true);
+    setShowModal(false);
+    setTimeout(() => setShowSuccessAlert(false), 4000);
+  };
+
   useEffect(() => {
     fetchProjects();
   }, []);
 
   return (
     <div className="container mt-4">
-      <h1 className="mb-4">Business Dashboard</h1>
-      
-      <AddProjectForm onProjectAdded={fetchProjects} />
+      <h1 className="text-primary">Business Dashboard</h1>
 
-      {projects.length === 0 && <p>No projects found</p>}
+      {/* Statistics cards */}
+      <div className="row mb-4">
+        <div className="col-md-4">
+          <div className="card bg-success text-white shadow-sm">
+            <div className="card-body">
+              <h5 className="card-title">Total Projects</h5>
+              <h3>{projects.length}</h3>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-8 d-flex align-items-end justify-content-end">
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            + Add New Project
+          </button>
+        </div>
+      </div>
+
+      {/* Success alert */}
+      {showSuccessAlert && (
+        <div className="alert alert-success alert-dismissible fade show" role="alert">
+          <strong>Success!</strong> Project has been successfully added.
+          <button type="button" className="btn-close" onClick={() => setShowSuccessAlert(false)}></button>
+        </div>
+      )}
+
+      {/* Project list */}
+      <h3 className="mb-3">Project List</h3>
+      {projects.length === 0 && <p>No projects found.</p>}
+
       <div className="row">
         {projects.map(proj => (
-          <div key={proj.id} className="col-md-6 mb-4">
-            <div className="card h-100 shadow-sm">
+          <div key={proj.id} className="col-md-6 col-lg-4 mb-4">
+            <div className="card h-100 shadow-sm border-0">
               <div className="card-body">
-                <h5 className="card-title">{proj.title}</h5>
+                <h5 className="card-title text-primary">{proj.title}</h5>
                 <h6 className="card-subtitle mb-2 text-muted">{proj.status}</h6>
-                <p className="card-text"><strong>Project Manager:</strong> {proj.projectManager}</p>
-                <p className="card-text"><strong>Client Contact:</strong> {proj.clientContact}</p>
-                <p className="card-text"><strong>Publication Date:</strong> {proj.publicationDate}</p>
-                <p className="card-text"><strong>Start Date:</strong> {proj.startDate}</p>
-                <p className="card-text"><strong>Takeover Date:</strong> {proj.takeoverDate ?? 'N/A'}</p>
-                <p className="card-text"><strong>End Date:</strong> {proj.endDate ?? 'N/A'}</p>
+                <p><strong>Project Manager:</strong> {proj.projectManager}</p>
+                <p><strong>Client Contact:</strong> {proj.clientContact}</p>
+                <p><strong>Published:</strong> {proj.publicationDate}</p>
+                <p><strong>Start Date:</strong> {proj.startDate}</p>
+                <p><strong>Takeover Date:</strong> {proj.takeoverDate || 'N/A'}</p>
+                <p><strong>End Date:</strong> {proj.endDate || 'N/A'}</p>
+
                 {proj.team && (
                   <>
                     <hr />
-                    <h6>Team Info</h6>
-                    <p className="mb-1"><strong>Name:</strong> {proj.team.name}</p>
-                    <p className="mb-0"><strong>Team Leader:</strong> {proj.team.teamLeader}</p>
+                    <p><strong>Team:</strong> {proj.team.name}</p>
+                    <p><strong>Team Lead:</strong> {proj.team.teamLeader}</p>
                   </>
                 )}
               </div>
@@ -53,6 +89,46 @@ const BusinessDashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* Modal for project form */}
+      {showModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          onClick={() => setShowModal(false)} // close modal on outside click
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-scrollable"
+            style={{ maxHeight: '90vh' }}
+            onClick={e => e.stopPropagation()} // prevent close on modal content click
+          >
+            <div
+              className="modal-content"
+              style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            >
+              <div className="modal-header" style={{ flex: '0 0 auto' }}>
+                <h5 className="modal-title">Add New Project</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div
+                className="modal-body"
+                style={{
+                  flex: '1 1 auto',
+                  overflowY: 'auto',
+                  maxHeight: 'calc(90vh - 150px)'
+                }}
+              >
+                <AddProjectForm onProjectAdded={handleProjectAdded} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

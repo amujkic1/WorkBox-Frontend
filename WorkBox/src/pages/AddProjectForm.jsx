@@ -1,115 +1,174 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
-const AddProjectForm = () => {
-  const [teamName, setTeamName] = useState('');
-  const [teamLeader, setTeamLeader] = useState('');
-  const [projectData, setProjectData] = useState({
+const AddProjectForm = ({ onProjectAdded }) => {
+  const [project, setProject] = useState({
     title: '',
     projectManager: '',
     clientContact: '',
-    status: '',
     publicationDate: '',
     takeoverDate: '',
     startDate: '',
-    endDate: ''
+    endDate: '',
+    status: '',
+    teamName: '',
+    teamLeader: '',
   });
 
-  const handleChange = e => {
-    setProjectData({ ...projectData, [e.target.name]: e.target.value });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setProject({ ...project, [e.target.name]: e.target.value });
   };
 
-  const handleTeamSubmit = async () => {
-    const response = await fetch('http://localhost:8082/teams', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: teamName,
-        teamLeader: teamLeader
-      })
+  const resetForm = () => {
+    setProject({
+      title: '',
+      projectManager: '',
+      clientContact: '',
+      publicationDate: '',
+      takeoverDate: '',
+      startDate: '',
+      endDate: '',
+      status: '',
+      teamName: '',
+      teamLeader: '',
     });
-
-    if (!response.ok) {
-      alert("Greška pri kreiranju tima.");
-      return null;
-    }
-
-    const data = await response.json();
-    return data.id; // Pretpostavlja se da backend vraća `id` direktno
   };
 
-  const handleProjectSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    const teamId = await handleTeamSubmit();
-    if (!teamId) return;
+    try {
+      // 1. Kreiraj tim
+      const teamResponse = await axios.post('http://localhost:8082/teams', {
+        name: project.teamName,
+        teamLeader: project.teamLeader
+      });
 
-    const finalProjectData = {
-      ...projectData,
-      team: { id: teamId }
-    };
+      const newTeamId = teamResponse.data.id || teamResponse.data.content?.id;
+      if (!newTeamId) throw new Error('Nema ID-a u odgovoru od /teams');
 
-    const response = await fetch('http://localhost:8082/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(finalProjectData)
-    });
+      // 2. Kreiraj projekat
+      const projectPayload = {
+        title: project.title,
+        projectManager: project.projectManager,
+        clientContact: project.clientContact,
+        publicationDate: project.publicationDate,
+        takeoverDate: project.takeoverDate,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        status: project.status,
+        team: { id: newTeamId }
+      };
 
-    if (response.ok) {
-      alert("Projekat uspješno prijavljen!");
-    } else {
-      alert("Greška pri prijavi projekta.");
+      await axios.post('http://localhost:8082/projects', projectPayload);
+
+      if (onProjectAdded) onProjectAdded();
+
+      resetForm(); // očisti formu
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data || 'Greška pri dodavanju projekta ili tima');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const fieldLabels = {
+    title: 'Project Title',
+    projectManager: 'Project Manager',
+    clientContact: 'Client Contact',
+    publicationDate: 'Publication Date',
+    takeoverDate: 'Takeover Date',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    status: 'Status',
+    teamName: 'Team Name',
+    teamLeader: 'Team Leader'
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Prijava novog projekta</h2>
-      <form onSubmit={handleProjectSubmit}>
-        <h4 className="mt-4">Informacije o timu</h4>
+    <div className="card p-4 shadow rounded">
+      <h2 className="mb-4">Add New Project</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+      <form onSubmit={handleSubmit}>
+        {/* Tekstualna polja */}
+        {['title', 'projectManager', 'clientContact'].map((field) => (
+          <div className="mb-3" key={field}>
+            <label className="form-label">{fieldLabels[field]}</label>
+            <input
+              type="text"
+              className="form-control"
+              name={field}
+              value={project[field]}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        ))}
+
+        {/* Datumi */}
+        {['publicationDate', 'takeoverDate', 'startDate', 'endDate'].map((dateField) => (
+          <div className="mb-3" key={dateField}>
+            <label className="form-label">{fieldLabels[dateField]}</label>
+            <input
+              type="date"
+              className="form-control"
+              name={dateField}
+              value={project[dateField]}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        ))}
+
+        {/* Status */}
         <div className="mb-3">
-          <label className="form-label">Naziv tima</label>
-          <input type="text" className="form-control" value={teamName} onChange={e => setTeamName(e.target.value)} required />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Vođa tima</label>
-          <input type="text" className="form-control" value={teamLeader} onChange={e => setTeamLeader(e.target.value)} required />
+          <label className="form-label">{fieldLabels.status}</label>
+          <select
+            className="form-select"
+            name="status"
+            value={project.status}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select status</option>
+            <option value="Active">Active</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Finished">Finished</option>
+          </select>
         </div>
 
-        <h4 className="mt-4">Informacije o projektu</h4>
-        <div className="mb-3">
-          <label className="form-label">Naslov</label>
-          <input type="text" className="form-control" name="title" value={projectData.title} onChange={handleChange} required />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Voditelj projekta</label>
-          <input type="text" className="form-control" name="projectManager" value={projectData.projectManager} onChange={handleChange} required />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Kontakt klijenta (email)</label>
-          <input type="email" className="form-control" name="clientContact" value={projectData.clientContact} onChange={handleChange} />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Status</label>
-          <input type="text" className="form-control" name="status" value={projectData.status} onChange={handleChange} />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Datum objave</label>
-          <input type="date" className="form-control" name="publicationDate" value={projectData.publicationDate} onChange={handleChange} />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Datum preuzimanja</label>
-          <input type="date" className="form-control" name="takeoverDate" value={projectData.takeoverDate} onChange={handleChange} />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Datum početka</label>
-          <input type="date" className="form-control" name="startDate" value={projectData.startDate} onChange={handleChange} />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Datum završetka</label>
-          <input type="date" className="form-control" name="endDate" value={projectData.endDate} onChange={handleChange} />
-        </div>
+        {/* Tim */}
+        <h5 className="mt-4">New Team Info</h5>
+        {['teamName', 'teamLeader'].map((field) => (
+          <div className="mb-3" key={field}>
+            <label className="form-label">{fieldLabels[field]}</label>
+            <input
+              type="text"
+              className="form-control"
+              name={field}
+              value={project[field]}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        ))}
 
-        <button type="submit" className="btn btn-primary">Prijavi projekat</button>
+        <button type="submit" className="btn btn-success" disabled={loading}>
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Saving...
+            </>
+          ) : (
+            'Add Project'
+          )}
+        </button>
       </form>
     </div>
   );
