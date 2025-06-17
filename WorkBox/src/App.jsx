@@ -18,7 +18,7 @@ import FinanceDashboard from './pages/FinanceDashboard';
 import BusinessDashboard from './pages/BusinessDashboard';
 import Records from './pages/Records';
 import SidebarHR from './components/common/SidebarHR';
-
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   const location = useLocation();
@@ -35,15 +35,41 @@ function App() {
 
           <Routes>
             <Route path="/" element={<Login />} />
-            <Route path='/register' element={<Register/>} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/cards" element={<AllCards />} />
-            <Route path='/hr' element={<HRDashboard/>} />
+            <Route path='/register' element={<Register/>} />  
+            
+            <Route
+              path="/hr"
+              element={<ProtectedRoute element={HRDashboard} allowedRoles={['HR']} />}
+            />
+
+            <Route
+              path="/app"
+              element={<ProtectedRoute element={ApplicationList} allowedRoles={['HR']} />}
+            />
+
+            <Route
+              path="/records"
+              element={<ProtectedRoute element={Records} allowedRoles={['HR']} />}
+            />
+
+            <Route
+              path="/finance/*"
+              element={<ProtectedRoute element={FinanceDashboard} allowedRoles={['FINANCE_MANAGER']} />}
+            />
+
+            <Route
+              path="/business"
+              element={<ProtectedRoute element={BusinessDashboard} allowedRoles={['BUSINESS_MANAGER']} />}
+            />
+
+            {/*
             <Route path="/finance/*" element={<FinanceDashboard />} />
             <Route path='/app' element={<ApplicationList/>}/>
             <Route path='/business' element={<BusinessDashboard />} />
             <Route path='/records' element={<Records/>}/>
+            */}
           </Routes>
+        
         </div>
 
         {showSide && <Footer />}

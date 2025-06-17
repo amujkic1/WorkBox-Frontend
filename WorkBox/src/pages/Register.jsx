@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../assets/sb-admin-2.css';
+import registerGif from '../assets/images/3.gif';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom'
@@ -13,8 +14,10 @@ const Register = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
-  const [role, setRole] = useState('HR')
+  const [role, setRole] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const navigate = useNavigate();
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -35,15 +38,35 @@ const Register = () => {
         const { token } = await response.json()
         console.log("Registration successfull")
         Cookies.set("token", token)
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const role = payload.role;
+
+      switch (role) {
+        case 'HR':
+          navigate('/hr');
+          break;
+        case 'FINANCE_MANAGER':
+          navigate('/finance');
+          break;
+        case 'BUSINESS_MANAGER':
+          navigate('/business');
+          break;
+        default:
+          navigate('/');
+      }
+
       } else {
         return response.json().then(data => {
           console.error(data.message)
+          setTimeout(() => setShowSuccessAlert(false), 4000);
           throw new Error(data.message)
         })
       }
     })
     .catch(error => {
       console.error('Registration error:', error);
+      setErrorMessage('Failed to register. Please try again.');
       setErrorMessage('Failed to register. Please try again.');
     });
   }
@@ -56,7 +79,16 @@ const Register = () => {
             <div className="card o-hidden border-0 shadow-lg my-5">
               <div className="card-body p-0">
                 <div className="row">
-                  <div className="col-lg-5 d-none d-lg-block bg-register-image"></div>
+
+                  <div className="col-lg-5 d-none d-lg-block p-3 mt-5">
+                    <img
+                      src={registerGif}
+                      alt="Registration visual"
+                      className="img-fluid"
+                      style={{ maxHeight: '100%', objectFit: 'cover' }}
+                    />
+                  </div>
+
                   <div className="col-lg-7">
                     <div className="p-5">
                       <div className="text-center">
@@ -117,16 +149,27 @@ const Register = () => {
                                 />
                               </div>
                             </div>
+
+                            <div className="form-group row">
+                              <div className="col-sm-12 mb-3 mb-sm-0">
+                                <select
+                                  className="form-select"
+                                  value={role}
+                                  onChange={(e) => setRole(e.target.value)}
+                                >
+                                  <option value="" disabled hidden>Select your role</option>
+                                  <option value="BUSINESS_MANAGER">Business manager</option>
+                                  <option value="FINANCE_MANAGER">Finance manager</option>
+                                  <option value="HR">Human resources</option>
+                                </select>
+                              </div>
+                            </div>
+
+
                             <button type="submit" className="btn btn-primary btn-user btn-block">
                               Register Account
                             </button>
                             <hr />
-                            <button className="btn btn-google btn-user btn-block">
-                              <i className="fab fa-google fa-fw" /> Register with Google
-                            </button>
-                            <button className="btn btn-facebook btn-user btn-block">
-                              <i className="fab fa-facebook-f fa-fw" /> Register with Facebook
-                            </button>
                           </form>
                           <hr />
                           <div className="text-center">
@@ -135,11 +178,20 @@ const Register = () => {
                           <div className="text-center">
                         <a className="small" href="#">Already have an account? Login!</a>
                       </div>
+
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+            {errorMessage && (
+              <div className="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                {errorMessage}
+                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                  onClick={() => setErrorMessage('')}>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
