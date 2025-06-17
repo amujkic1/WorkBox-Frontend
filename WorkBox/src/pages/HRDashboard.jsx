@@ -59,8 +59,9 @@ const HRDashboard = () => {
         benefits: data.benefits.map(b => b.value).join(", "), 
         startDate: data.startDate,
         endDate: data.endDate,
+        result: "Pending",
         //user ce inace biti hr koji kreira konkurs, implementirati poslije logina
-        //userId: 1
+        userId: 1
       })
     })
       .then(async response => {
@@ -146,7 +147,10 @@ const HRDashboard = () => {
                   <button type="button" className="btn-close" onClick={() => setShowAppModal(false)}></button>
                 </div>
                 <div className="modal-body">
-                  <ApplicationList applications={applications} />
+                  <ApplicationList
+                    applications={applications}
+                    onStatusChange={fetchApplications}
+                  />
                 </div>
               </div>
             </div>

@@ -1,5 +1,11 @@
-// components/dashboard/OpeningTable.jsx
-const OpeningTable = ({ openings }) => (
+const OpeningTable = ({ openings }) => {
+  
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-GB');
+  };
+  
+  return (
   <div className="card mb-4 shadow-lg">
     <div className="card-header bg-white">
       <h5 className="mb-0">Active openings</h5>
@@ -25,8 +31,8 @@ const OpeningTable = ({ openings }) => (
             openings.map((opening, index) => (
               <tr key={index}>
                 <td>{opening.openingName}</td>
-                <td>{opening.startDate}</td>
-                <td>{opening.endDate}</td>
+                <td>{formatDate(opening.startDate)}</td>
+                <td>{formatDate(opening.endDate)}</td>
                 <td>{opening.applicationCount ?? 0}</td>
                 <td>
                   <span className={`badge ${opening.status === 'Active' ? 'bg-success' : 'bg-secondary'}`}>
@@ -44,6 +50,6 @@ const OpeningTable = ({ openings }) => (
       </table>
     </div>
   </div>
-);
+);}
 
 export default OpeningTable;
