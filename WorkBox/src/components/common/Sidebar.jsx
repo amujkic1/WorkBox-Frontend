@@ -18,6 +18,7 @@ export default function Sidebar() {
       </li>
       <hr className="sidebar-divider" />
       <div className="sidebar-heading">Interface</div>
+      <div className="sidebar-heading">Interface</div>
       {/* Add collapse menus here */}
     </ul>
   );

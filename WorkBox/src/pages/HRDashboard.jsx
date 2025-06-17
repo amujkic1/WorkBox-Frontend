@@ -45,40 +45,39 @@ const HRDashboard = () => {
       .catch(() => setErrorMessage('Greška pri dohvatu prijava.'));
   };
 
-const handleCreateOpening = (data) => {
-  fetch('http://localhost:8080/hr/openings', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify({
-      openingName: data.title,
-      description: data.description,
-      conditions: data.conditions.map(c => c.value).join(", "),
-      benefits: data.benefits.map(b => b.value).join(", "), 
-      startDate: data.startDate,
-      endDate: data.endDate,
-      //user ce inace biti hr koji kreira konkurs, implementirati poslije logina
-      //userId: 1
+  const handleCreateOpening = (data) => {
+    fetch('http://localhost:8080/hr/openings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        openingName: data.title,
+        description: data.description,
+        conditions: data.conditions.map(c => c.value).join(", "),
+        benefits: data.benefits.map(b => b.value).join(", "), 
+        startDate: data.startDate,
+        endDate: data.endDate,
+        //user ce inace biti hr koji kreira konkurs, implementirati poslije logina
+        //userId: 1
+      })
     })
-  })
-    .then(async response => {
-      if (response.ok) {
-        const result = await response.json();
-        setShowModal(false); 
-        fetchOpenings();     
-        setShowSuccessAlert(true); 
-        setTimeout(() => setShowSuccessAlert(false), 4000);
-      } else {
-        setErrorMessage("Failed to create an opening.");
-        setTimeout(() => setErrorMessage(''), 4000);
-        setShowModal(false); 
-      }
-    })
-    .catch(() => setErrorMessage('Failed to create an opening.'));
-};
-
+      .then(async response => {
+        if (response.ok) {
+          const result = await response.json();
+          setShowModal(false); 
+          fetchOpenings();     
+          setShowSuccessAlert(true); 
+          setTimeout(() => setShowSuccessAlert(false), 4000);
+        } else {
+          setErrorMessage("Failed to create an opening.");
+          setTimeout(() => setErrorMessage(''), 4000);
+          setShowModal(false); 
+        }
+      })
+      .catch(() => setErrorMessage('Failed to create an opening.'));
+  };
 
   useEffect(() => {
     fetchOpenings();
@@ -88,19 +87,18 @@ const handleCreateOpening = (data) => {
   return (
     <>
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div className="container-fluid">
-          <a className="navbar-brand" href="#"></a>
-          <div className="d-flex">
-            <span className="navbar-text me-3">Welcome, HR Zaposlenik</span>
-            <button className="btn btn-outline-light">Logout</button>
-          </div>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm py-3">
+        <div className="container-fluid d-flex justify-content-end align-items-center">
+            <span className="text-white me-3 fs-6">Welcome, <strong>HR Zaposlenik</strong></span>
+            <button className="btn btn-outline-light btn-sm px-3">Logout</button>
         </div>
       </nav>
 
       <div className="container mt-4">
 
-
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2 className="fw-bold text-primary m-0">HR Dashboard</h2>
+        </div>
 
         {showSuccessAlert && (
           <div className="alert alert-success alert-dismissible fade show mt-3" role="alert">
@@ -115,7 +113,6 @@ const handleCreateOpening = (data) => {
             <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close" onClick={() => setErrorMessage('')}></button>
           </div>
         )}
-
 
         <DashboardCards onOpenForm={() => setShowModal(true)} onOpenAppForm={() => setShowAppModal(true)} />
         <div className="row">
