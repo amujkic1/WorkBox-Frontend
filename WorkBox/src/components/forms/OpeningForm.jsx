@@ -40,7 +40,7 @@ const schema = yup.object().shape({
     .min(yup.ref("startDate"), "End date can't be before start date"),
 });
 
-const OpeningForm = ({ onSubmit }) => {
+const OpeningForm = ({ onSubmit, defaultValues = {}, buttonLabel = "Create opening" }) => {
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [selectedBenefits, setSelectedBenefits] = useState([]);
 
@@ -58,6 +58,22 @@ const OpeningForm = ({ onSubmit }) => {
     register("conditions");
     register("benefits");
   }, [register]);
+
+  useEffect(() => {
+  if (defaultValues.title) setValue("title", defaultValues.title);
+  if (defaultValues.description) setValue("description", defaultValues.description);
+  if (defaultValues.startDate) setValue("startDate", defaultValues.startDate.slice(0, 10));
+  if (defaultValues.endDate) setValue("endDate", defaultValues.endDate.slice(0, 10));
+
+  const conditionsMapped = defaultValues.conditions?.split(", ").map(value => ({ value, label: value })) || [];
+  const benefitsMapped = defaultValues.benefits?.split(", ").map(value => ({ value, label: value })) || [];
+
+  setSelectedConditions(conditionsMapped);
+  setValue("conditions", conditionsMapped);
+  setSelectedBenefits(benefitsMapped);
+  setValue("benefits", benefitsMapped);
+}, [defaultValues, setValue]);
+
 
   const handleConditionChange = (selected) => {
     setSelectedConditions(selected);
@@ -186,7 +202,7 @@ const OpeningForm = ({ onSubmit }) => {
             <div className="form-group row">
               <div className="col-sm-10">
                 <button type="submit" className="btn btn-primary">
-                  Create opening
+                  {buttonLabel}
                 </button>
               </div>
             </div>

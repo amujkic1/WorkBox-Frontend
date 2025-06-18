@@ -1,15 +1,36 @@
+// src/components/auth/auth.js
 import Cookies from 'js-cookie';
 
+export const getToken = () => {
+  return Cookies.get('token');
+};
+
 export const isAuthenticated = () => {
-  const token = Cookies.get('token');
-  return !!token;
+  const token = getToken();
+  if (!token) return false;
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      Cookies.remove('token');
+      return false;
+    }
+    return true;
+  } catch (e) {
+    Cookies.remove('token');
+    return false;
+  }
 };
 
 export const getUserRole = () => {
-  const token = Cookies.get('token');
+  const token = getToken();
   if (!token) return null;
 
-  const payload = token.split('.')[1];
-  const decoded = JSON.parse(atob(payload));
-  return decoded.role || null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role || null;
+  } catch (e) {
+    return null;
+  }
 };
