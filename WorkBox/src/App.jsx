@@ -21,6 +21,7 @@ import SidebarHR from './components/common/SidebarHR';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import AssignUsersToTeams from './pages/AssignUsersToTeams';
+import ProjectTaskManager from './pages/ProjectTaskManager'; 
 
 function App() {
   const location = useLocation();
@@ -68,6 +69,11 @@ function App() {
               path="/teams"
               element={<ProtectedRoute element={AssignUsersToTeams} allowedRoles={['BUSINESS_MANAGER']} />}
             />
+
+             <Route
+    path="/projects/:projectId/tasks"
+    element={<ProtectedRoute element={ProjectTaskManager} allowedRoles={['BUSINESS_MANAGER']} />}
+  />
 
             {/*
             <Route path="/finance/*" element={<FinanceDashboard />} />

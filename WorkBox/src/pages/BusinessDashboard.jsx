@@ -75,7 +75,7 @@ const BusinessDashboard = () => {
         {projects.map(proj => (
           <div key={proj.id} className="col-md-6 col-lg-4 mb-4">
             <div className="card h-100 shadow-sm border-0">
-              <div className="card-body">
+              <div className="card-body d-flex flex-column">
                 <h5 className="card-title text-primary">{proj.title}</h5>
                 <h6 className="card-subtitle mb-2 text-muted">{proj.status}</h6>
                 <p><strong>Project Manager:</strong> {proj.projectManager}</p>
@@ -92,6 +92,16 @@ const BusinessDashboard = () => {
                     <p><strong>Team Lead:</strong> {proj.team.teamLeader}</p>
                   </>
                 )}
+
+                {/* Manage Tasks button */}
+                <div className="mt-auto">
+                  <button 
+                    className="btn btn-outline-primary w-100"
+                    onClick={() => navigate(`/projects/${proj.id}/tasks`)}
+                  >
+                    Manage Tasks
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -112,10 +122,10 @@ const BusinessDashboard = () => {
             onClick={e => e.stopPropagation()} // prevent close on modal content click
           >
             <div
-              className="modal-content"
-              style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+              className="modal-content d-flex flex-column"
+              style={{ height: '100%' }}
             >
-              <div className="modal-header" style={{ flex: '0 0 auto' }}>
+              <div className="modal-header flex-shrink-0">
                 <h5 className="modal-title">Add New Project</h5>
                 <button
                   type="button"
@@ -124,12 +134,8 @@ const BusinessDashboard = () => {
                 ></button>
               </div>
               <div
-                className="modal-body"
-                style={{
-                  flex: '1 1 auto',
-                  overflowY: 'auto',
-                  maxHeight: 'calc(90vh - 150px)'
-                }}
+                className="modal-body flex-grow-1 overflow-auto"
+                style={{ maxHeight: 'calc(90vh - 150px)' }}
               >
                 <AddProjectForm onProjectAdded={handleProjectAdded} />
               </div>
