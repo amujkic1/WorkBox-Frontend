@@ -1,7 +1,33 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie'; 
+
 
 export default function FinanceSidebar() {
+  const navigate = useNavigate();
+
+  // Funkcija za logout
+  const handleLogout = () => {
+    // Brisanje tokena iz cookies
+    Cookies.remove('token');
+    
+    // Takođe, možeš očistiti bilo koji drugi storage ako je potrebno
+    if (localStorage.getItem('token')) {
+      localStorage.removeItem('token');
+    }
+    
+    if (sessionStorage.getItem('token')) {
+      sessionStorage.removeItem('token');
+    }
+    
+    // Ako koristiš axios zaglavlja za token, obriši ga
+    delete axios.defaults.headers.common['Authorization'];
+    
+    // Preusmeri korisnika na login stranicu
+    navigate('/login');
+  };
+  
   return (
     <ul className="navbar-nav bg-gradient-info sidebar sidebar-dark accordion" id="financeSidebar">
 
@@ -46,7 +72,7 @@ export default function FinanceSidebar() {
 
 
        <li className="nav-item">
-        <Link className="nav-link" to="/">
+        <Link className="nav-link" to="/" onClick={handleLogout}>
           <i className="fas fa-sign-out-alt me-2" style={{ fontSize: '20px' }}></i>
           <span className="fs-5">Logout</span>
         </Link>
