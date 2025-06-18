@@ -1,25 +1,35 @@
 const ApplicationList = ({ applications, onStatusChange }) => {
 
-  const handleApplication = (id, status) => {
-    fetch(`http://localhost:8080/hr/applications/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({status})
+const handleApplication = (id, status) => {
+  const patchBody = [
+    {
+      op: "replace",
+      path: "/status",
+      value: status
+    }
+  ];
+
+  fetch(`http://localhost:8080/hr/applications/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json-patch+json'
+    },
+    credentials: 'include',
+    body: JSON.stringify(patchBody)
+  })
+    .then(async response => {
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Application updated", result);
+        onStatusChange();
+      } else {
+        console.log("Failed to update application");
+        setErrorMessage('Failed to update application.');
+      }
     })
-      .then(async response => {
-        if (response.ok) {
-          const result = await response.json();
-          console.log("Application updated", result);
-          onStatusChange()
-        } else {
-          console.log("Failed to update application")
-        }
-      })
-      .catch(() => setErrorMessage('Failed to update application.'));
-  };
+    .catch(() => setErrorMessage('Failed to update application.'));
+};
+
 
   return (
     <div className="card-body">
