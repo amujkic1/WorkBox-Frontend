@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import Cookies from 'js-cookie'; // Importujemo cookies
 
 export default function Payroll() {
   const [mode, setMode] = useState('all');
@@ -7,36 +9,63 @@ export default function Payroll() {
   const [toDate, setToDate] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isCardCollapsed, setIsCardCollapsed] = useState(false);
+  const [results, setResults] = useState(null);  // Stanje za rezultate
+  const [isLoading, setIsLoading] = useState(false); // Stanje za loading
 
   const toggleCardCollapse = () => {
     setIsCardCollapsed(prev => !prev);
   };
 
-  const handlePayroll = () => {
+  const handlePayroll = async () => {
     setErrorMessage('');
+    setResults(null);  // Resetujemo rezultate svaki put kada pokrenemo obračun
+    setIsLoading(true); // Pokrećemo loading indikator
 
     if (!fromDate || !toDate) {
       setErrorMessage('Molimo unesite oba datuma.');
+      setIsLoading(false);
       return;
     }
 
     if (new Date(fromDate) > new Date(toDate)) {
       setErrorMessage('Datum "Od" ne može biti nakon datuma "Do".');
+      setIsLoading(false);
       return;
     }
 
     if (mode === 'single' && !employeeId.trim()) {
       setErrorMessage('Unesite ID uposlenika.');
+      setIsLoading(false);
       return;
     }
 
-    if (mode === 'single') {
-      console.log(`Obračun plate za uposlenika ID: ${employeeId}, period: ${fromDate} - ${toDate}`);
-    } else {
-      console.log(`Obračun plata za sve uposlenike, period: ${fromDate} - ${toDate}`);
+    // Dohvatanje JWT tokena iz cookie-ja (provereno da je postavljen u Login komponenti kao 'token')
+    const jwtToken = Cookies.get('token'); // Promenili smo ključ na 'token'
+
+    if (!jwtToken) {
+      setErrorMessage('Nema validnog JWT tokena.');
+      setIsLoading(false);
+      return;
     }
 
-    alert('Obračun pokrenut (simulacija).');
+    try {
+      // Kreiramo URL sa parametrima
+      const url = `http://localhost:8080/finance/employees_payroll?fromDate=${fromDate}&toDate=${toDate}${mode === 'single' ? `&employeeId=${employeeId}` : ''}`;
+
+      // API poziv sa axios-om
+      const response = await axios.get(url, {
+        headers: {
+          'Authorization': `Bearer ${jwtToken}` // Dodajemo JWT token u Authorization header
+        }
+      });
+
+      // Ako je uspešan odgovor, postavljamo rezultate
+      setResults(response.data);
+    } catch (error) {
+      setErrorMessage(error.response ? error.response.data.message : 'Došlo je do greške prilikom poziva API-ja');
+    } finally {
+      setIsLoading(false);  // Završavamo loading
+    }
   };
 
   return (
@@ -121,13 +150,22 @@ export default function Payroll() {
               <button
                 onClick={handlePayroll}
                 className="btn btn-primary w-100"
+                disabled={isLoading}  // Onemogućavamo dugme dok traje poziv
               >
-                Obračunaj platu
+                {isLoading ? 'Učitavanje...' : 'Obračunaj platu'}
               </button>
             </>
           )}
         </div>
       </div>
+
+      {/* Prikaz rezultata kao JSON */}
+      {results && (
+        <div className="mt-4">
+          <h4>Rezultati:</h4>
+          <pre>{JSON.stringify(results, null, 2)}</pre>
+        </div>
+      )}
     </div>
   );
 }
