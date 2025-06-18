@@ -28,6 +28,28 @@ const BusinessDashboard = () => {
     setTimeout(() => setShowSuccessAlert(false), 4000);
   };
 
+  const markProjectAsFinished = (projectId) => {
+    fetch(`http://localhost:8082/projects/${projectId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json-patch+json",
+      },
+      body: JSON.stringify([
+        {
+          op: "replace",
+          path: "/status",
+          value: "Finished",
+        },
+      ]),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to update project status");
+        return res.json();
+      })
+      .then(() => fetchProjects())
+      .catch((err) => alert("Error updating project: " + err.message));
+  };
+
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -74,7 +96,7 @@ const BusinessDashboard = () => {
       <div className="row">
         {projects.map(proj => (
           <div key={proj.id} className="col-md-6 col-lg-4 mb-4">
-            <div className="card h-100 shadow-sm border-0">
+            <div className={`card h-100 shadow-sm border-0 ${proj.status === 'Finished' ? 'bg-light text-muted' : ''}`}>
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title text-primary">{proj.title}</h5>
                 <h6 className="card-subtitle mb-2 text-muted">{proj.status}</h6>
@@ -93,14 +115,25 @@ const BusinessDashboard = () => {
                   </>
                 )}
 
-                {/* Manage Tasks button */}
                 <div className="mt-auto">
-                  <button 
-                    className="btn btn-outline-primary w-100"
-                    onClick={() => navigate(`/projects/${proj.id}/tasks`)}
-                  >
-                    Manage Tasks
-                  </button>
+                  {proj.status !== "Finished" ? (
+                    <>
+                      <button
+                        className="btn btn-outline-primary w-100 mb-2"
+                        onClick={() => navigate(`/projects/${proj.id}/tasks`)}
+                      >
+                        Manage Tasks
+                      </button>
+                      <button
+                        className="btn btn-outline-success w-100"
+                        onClick={() => markProjectAsFinished(proj.id)}
+                      >
+                        Mark as Finished
+                      </button>
+                    </>
+                  ) : (
+                    <span className="badge bg-secondary w-100 py-2">Project Finished</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -114,12 +147,12 @@ const BusinessDashboard = () => {
           className="modal fade show d-block"
           tabIndex="-1"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-          onClick={() => setShowModal(false)} // close modal on outside click
+          onClick={() => setShowModal(false)}
         >
           <div
             className="modal-dialog modal-lg modal-dialog-scrollable"
             style={{ maxHeight: '90vh' }}
-            onClick={e => e.stopPropagation()} // prevent close on modal content click
+            onClick={e => e.stopPropagation()}
           >
             <div
               className="modal-content d-flex flex-column"
