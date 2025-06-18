@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AddProjectForm from './AddProjectForm';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -6,6 +7,7 @@ const BusinessDashboard = () => {
   const [projects, setProjects] = useState([]);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
   const fetchProjects = () => {
     fetch('http://localhost:8082/projects')
@@ -47,6 +49,12 @@ const BusinessDashboard = () => {
         <div className="col-md-8 d-flex align-items-end justify-content-end">
           <button className="btn btn-primary" onClick={() => setShowModal(true)}>
             + Add New Project
+          </button>
+          <button 
+            className="btn btn-secondary ms-2" 
+            onClick={() => navigate('/teams')}
+          >
+            Go to Teams
           </button>
         </div>
       </div>
