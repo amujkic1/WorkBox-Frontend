@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 const Records = () => {
   const [records, setRecords] = useState([]);
@@ -10,6 +13,11 @@ const Records = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [topbarName, setTopbarName] = useState(''); 
+  const [users, setUsers] = useState([]);
+  const [benefits, setBenefits] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 6;
+  const navigate = useNavigate();
 
   const fetchRecords = () => {
     fetch('http://localhost:8080/hr/records', {
@@ -27,7 +35,24 @@ const Records = () => {
         .catch(() => setErrorMessage('An error occurred while fetching records.'));
     };
 
+    const fetchUsers = () => {
+        fetch('http://localhost:8080/hr/users', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        })
+            .then(async (response) => {
+            if (response.ok) {
+                const data = await response.json();
+                const userList = data._embedded?.userDTOList || [];
+                setUsers(userList);
+            }
+            })
+            .catch(() => console.error('Failed to fetch users.'));
+    }
+
     const filterRecords = (status='') => {
+        setCurrentPage(1);
         let url = 'http://localhost:8080/hr/records_by_status';
         if (status) {
             url += `?status=${encodeURIComponent(status)}`;
@@ -53,10 +78,76 @@ const Records = () => {
         setShowEditModal(true);
     };
 
+  const updateRecord = async () => {
+  try {
+    const response = await fetch(`http://localhost:8080/hr/records/${selectedRecord.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        status: selectedRecord.status,
+        workingHours: selectedRecord.workingHours,
+      }),
+    });
+
+    if (response.ok) {
+      setShowEditModal(false);
+      setShowSuccessAlert(true);
+      fetchRecords(); 
+      setTimeout(() => setShowSuccessAlert(false), 3000);
+    } else {
+      const errData = await response.json();
+      console.error('Failed to update:', errData);
+      setErrorMessage('Failed to update record.');
+    }
+  } catch (error) {
+    console.error('Update error:', error);
+    setErrorMessage('An error occurred during update.');
+  }
+};
+
+const handleLogout = async () => {
+    try {
+     const token = Cookies.get('token');
+     if (!token) {
+       throw new Error('Token not found');
+     }
+
+     const payload = JSON.parse(atob(token.split('.')[1]));
+     const uuid = payload.uuid;
+     console.log("UUID usera koji se ažurira:",uuid);
+
+     const patch = [
+       { op: "replace", path: "/checkOutTime", value: new Date().toTimeString().split(' ')[0] }
+     ];
+     console.log("Ažurira se vrijeme u:",patch);
+
+     await axios.patch(`http://localhost:8080/finance/check_in_record/${uuid}`, patch, {
+       headers: {
+         'Content-Type': 'application/json-patch+json',
+         Authorization: `Bearer ${token}`
+       }
+     });
+
+    } catch (error) {
+      console.log('Failed to update checkOutTime:', error.message);
+    }
+
+    Cookies.remove('token');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+   
+    navigate('/');
+  }
+
+
   useEffect(() => {
     fetchRecords();
+    fetchUsers();
 
-        const getTokenFromCookie = () => {
+    const getTokenFromCookie = () => {
     const match = document.cookie.match(/token=([^;]+)/);
     return match ? match[1] : null;
   };
@@ -73,13 +164,47 @@ const Records = () => {
 
   }, []);
 
+  useEffect(() => {
+  const fetchBenefitsForUsers = async () => {
+    const newBenefits = {};
+
+    for (const user of users) {
+      try {
+        const res = await fetch(`http://localhost:8080/hr/employee_benefit/user/${user.id}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+
+        if (res.ok) {
+          const benefitData = await res.json();
+          newBenefits[user.uuid] = benefitData || 'No benefits';
+        }
+      } catch (err) {
+        console.error('Error fetching benefits for user', user.id, err);
+        newBenefits[user.uuid] = 'Error';
+      }
+    }
+
+    setBenefits(newBenefits);
+  };
+
+  if (users.length > 0) {
+    fetchBenefitsForUsers();
+  }
+}, [users]);
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = records.slice(indexOfFirstRecord, indexOfLastRecord);
+
   return (
     <>
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm py-3">
         <div className="container-fluid d-flex justify-content-end align-items-center">
              <span className="text-white me-3 fs-6">Welcome, <strong>{topbarName || 'User'}</strong></span>
-            <button className="btn btn-outline-light btn-sm px-3">Logout</button>
+            <button onClick={handleLogout} className="btn btn-outline-light btn-sm px-3">Logout</button>
         </div>
       </nav>
 
@@ -116,21 +241,27 @@ const Records = () => {
             <th></th>
             <th>Status</th>
             <th>Position</th>
+            <th>Benefits</th>
             </tr>
         </thead>
         <tbody>
-            {records.map((record) => (
+            {currentRecords.map((record) => (
             <tr key={record.id}>
                 <td>
                 <div className="d-flex align-items-center">
                     <img
-                    src="https://mdbootstrap.com/img/new/avatars/8.jpg"
+                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
                     alt=""
                     style={{ width: "45px", height: "45px" }}
                     className="rounded-circle"
                     />
                     <div className="ms-3">
-                    <p className="fw-bold mb-1">User #{record.id}</p>
+                    <p className="fw-bold mb-1">
+                      {(() => {
+                        const matchedUser = users.find(user => user.uuid === record.userUuid);
+                        return matchedUser ? `${matchedUser.firstName} ${matchedUser.lastName}` : `User #${record.id}`;
+                      })()}
+                    </p>
                     </div>
                 </div>
                 </td>
@@ -169,11 +300,53 @@ const Records = () => {
                     </button>
                 </td>
                 <td>{record.workingHours >= 8 ? "Senior" : "Junior"}</td>
-                
+                <td>
+                  {benefits[record.userUuid] && benefits[record.userUuid].length > 0
+                    ? benefits[record.userUuid][0].type === 'zdravstvo'
+                      ? 'Healthcare'
+                      : benefits[record.userUuid][0].type
+                    : 'No data'}
+                </td>
             </tr>
             ))}
         </tbody>
         </table>
+
+        <nav className='mt-3'>
+  <ul className="pagination justify-content-center">
+    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+      <button
+        className="page-link"
+        onClick={() => setCurrentPage(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        Previous
+      </button>
+    </li>
+
+    {Array.from({ length: Math.ceil(records.length / recordsPerPage) }, (_, i) => i + 1).map(pageNumber => (
+      <li
+        key={pageNumber}
+        className={`page-item ${pageNumber === currentPage ? 'active' : ''}`}
+      >
+        <button className="page-link" onClick={() => setCurrentPage(pageNumber)}>
+          {pageNumber}
+        </button>
+      </li>
+    ))}
+
+    <li className={`page-item ${currentPage === Math.ceil(records.length / recordsPerPage) ? 'disabled' : ''}`}>
+      <button
+        className="page-link"
+        onClick={() => setCurrentPage(currentPage + 1)}
+        disabled={currentPage === Math.ceil(records.length / recordsPerPage)}
+      >
+        Next
+      </button>
+    </li>
+  </ul>
+</nav>
+
 
         {showEditModal && selectedRecord && (
         <div
@@ -195,7 +368,7 @@ const Records = () => {
                 <form
                     onSubmit={(e) => {
                     e.preventDefault();
-                    // Ovdje ide API poziv za update ako želiš
+                    updateRecord();
                     setShowEditModal(false);
                     setShowSuccessAlert(true);
                     setTimeout(() => setShowSuccessAlert(false), 3000);
@@ -210,22 +383,13 @@ const Records = () => {
                         setSelectedRecord({ ...selectedRecord, status: e.target.value })
                         }
                     >
-                        <option>Active</option>
-                        <option>Inactive</option>
-                        <option>Pending</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="ANNUAL_LEAVE">Annual Leave</option>
+                        <option value="SICK_LEAVE">Sick Leave</option>
                     </select>
                     </div>
-                    <div className="mb-3">
-                    <label className="form-label">Working Hours</label>
-                    <input
-                        type="number"
-                        className="form-control"
-                        value={selectedRecord.workingHours}
-                        onChange={(e) =>
-                        setSelectedRecord({ ...selectedRecord, workingHours: e.target.value })
-                        }
-                    />
-                    </div>
+
                     <div className="text-end">
                     <button type="submit" className="btn btn-primary">
                         Save Changes
@@ -241,7 +405,7 @@ const Records = () => {
 
         {showSuccessAlert && (
           <div className="alert alert-success alert-dismissible fade show mt-3" role="alert">
-            <strong>Success!</strong> Opening has been successfully created.
+            <strong>Success!</strong> Record has been successfully updated.
             <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close" onClick={() => setShowSuccessAlert(false)}></button>
           </div>
         )}

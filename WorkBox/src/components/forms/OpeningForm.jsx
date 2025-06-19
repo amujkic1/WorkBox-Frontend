@@ -14,7 +14,6 @@ const ConditionOptions = [
   { value: 'Hybrid', label: 'Hybrid' },
   { value: 'Fast-paced', label: 'Fast-paced' },
   { value: 'Team-oriented', label: 'Team-oriented' },
-  { value: 'Remote', label: 'Remote' },
   { value: 'Company laptop provided', label: 'Company laptop provided' }
 ];
 
@@ -43,6 +42,7 @@ const schema = yup.object().shape({
 const OpeningForm = ({ onSubmit, defaultValues = {}, buttonLabel = "Create opening" }) => {
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [selectedBenefits, setSelectedBenefits] = useState([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const {
     register,
@@ -59,20 +59,34 @@ const OpeningForm = ({ onSubmit, defaultValues = {}, buttonLabel = "Create openi
     register("benefits");
   }, [register]);
 
-  useEffect(() => {
-  if (defaultValues.title) setValue("title", defaultValues.title);
-  if (defaultValues.description) setValue("description", defaultValues.description);
-  if (defaultValues.startDate) setValue("startDate", defaultValues.startDate.slice(0, 10));
-  if (defaultValues.endDate) setValue("endDate", defaultValues.endDate.slice(0, 10));
+useEffect(() => {
+  if (!hasInitialized && defaultValues.title) {
+    setValue("title", defaultValues.title);
+    setValue("description", defaultValues.description);
+    setValue("startDate", defaultValues.startDate?.slice(0, 10));
+    setValue("endDate", defaultValues.endDate?.slice(0, 10));
 
-  const conditionsMapped = defaultValues.conditions?.split(", ").map(value => ({ value, label: value })) || [];
-  const benefitsMapped = defaultValues.benefits?.split(", ").map(value => ({ value, label: value })) || [];
+    const mapToOptions = (input) =>
+  typeof input === "string"
+    ? input.split(", ").map((v) => ({ value: v, label: v }))
+    : Array.isArray(input)
+    ? input.map((v) => ({ value: v, label: v }))
+    : [];
 
-  setSelectedConditions(conditionsMapped);
-  setValue("conditions", conditionsMapped);
-  setSelectedBenefits(benefitsMapped);
-  setValue("benefits", benefitsMapped);
-}, [defaultValues, setValue]);
+const conditionsMapped = mapToOptions(defaultValues.conditions);
+const benefitsMapped = mapToOptions(defaultValues.benefits);
+
+//    const conditionsMapped = defaultValues.conditions?.split(", ").map(value => ({ value, label: value })) || [];
+//    const benefitsMapped = defaultValues.benefits?.split(", ").map(value => ({ value, label: value })) || [];
+
+    setSelectedConditions(conditionsMapped);
+    setValue("conditions", conditionsMapped);
+    setSelectedBenefits(benefitsMapped);
+    setValue("benefits", benefitsMapped);
+
+    setHasInitialized(true); // ovo sprečava ponavljanje efekta
+  }
+}, [defaultValues, setValue, hasInitialized]);
 
 
   const handleConditionChange = (selected) => {

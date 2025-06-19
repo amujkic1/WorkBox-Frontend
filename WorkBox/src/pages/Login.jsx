@@ -168,7 +168,7 @@ const handleLogin = (e) => {
                         <a className="small" href="#">Forgot Password?</a>
                       </div>
                       <div className="text-center">
-                        <a className="small" href="#">Create an Account!</a>
+                        <a className="small" href="/register">Create an Account!</a>
                       </div>
                     </div>
                   </div>
