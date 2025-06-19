@@ -2,13 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie'; 
+import axios from 'axios';
 
 
 export default function FinanceSidebar() {
   const navigate = useNavigate();
 
   // Funkcija za logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    /*
     // Brisanje tokena iz cookies
     Cookies.remove('token');
     
@@ -26,7 +28,41 @@ export default function FinanceSidebar() {
     
     // Preusmeri korisnika na login stranicu
     navigate('/login');
-  };
+    */
+    try {
+     const token = Cookies.get('token');
+     if (!token) {
+       throw new Error('Token not found');
+     }
+
+     const payload = JSON.parse(atob(token.split('.')[1]));
+     const uuid = payload.uuid;
+     console.log("UUID usera koji se ažurira:",uuid);
+
+     const patch = [
+       { op: "replace", path: "/checkOutTime", value: new Date().toTimeString().split(' ')[0] }
+     ];
+     console.log("Ažurira se vrijeme u:",patch);
+
+     await axios.patch(`http://localhost:8080/finance/check_in_record/${uuid}`, patch, {
+       headers: {
+         'Content-Type': 'application/json-patch+json',
+         Authorization: `Bearer ${token}`
+       }
+     });
+     
+    } catch (error) {
+      console.log('Failed to update checkOutTime:', error.message);
+    }
+
+    // Logout u svakom slučaju
+    Cookies.remove('token');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+
+    navigate('/');
+  }
   
   return (
     <ul className="navbar-nav bg-gradient-info sidebar sidebar-dark accordion" id="financeSidebar">
