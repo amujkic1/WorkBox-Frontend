@@ -7,6 +7,9 @@ import DashboardCards from '../components/dashboard/DashboardCards';
 import OpeningTable from '../components/dashboard/OpeningTable';
 import Sidebar from '../components/common/Sidebar';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 const HRDashboard = () => {
   const [showModal, setShowModal] = useState(false);
@@ -21,6 +24,42 @@ const HRDashboard = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestAlertMessage, setRequestAlertMessage] = useState('');
   const [topbarName, setTopbarName] = useState(''); 
+  const navigate = useNavigate();
+
+const handleLogout = async () => {
+    try {
+     const token = Cookies.get('token');
+     if (!token) {
+       throw new Error('Token not found');
+     }
+
+     const payload = JSON.parse(atob(token.split('.')[1]));
+     const uuid = payload.uuid;
+     console.log("UUID usera koji se ažurira:",uuid);
+
+     const patch = [
+       { op: "replace", path: "/checkOutTime", value: new Date().toTimeString().split(' ')[0] }
+     ];
+     console.log("Ažurira se vrijeme u:",patch);
+
+     await axios.patch(`http://localhost:8080/finance/check_in_record/${uuid}`, patch, {
+       headers: {
+         'Content-Type': 'application/json-patch+json',
+         Authorization: `Bearer ${token}`
+       }
+     });
+
+    } catch (error) {
+      console.log('Failed to update checkOutTime:', error.message);
+    }
+
+    Cookies.remove('token');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+   
+    navigate('/');
+  }
+
 
   const fetchOpenings = () => {
     fetch('http://localhost:8080/hr/openings', {
@@ -200,8 +239,8 @@ const HRDashboard = () => {
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm py-3">
         <div className="container-fluid d-flex justify-content-end align-items-center">
           <span className="text-white me-3 fs-6">Welcome, <strong>{topbarName || 'User'}</strong></span>
-         <button className="btn btn-outline-light btn-sm px-3">Logout</button>
-        </div>
+          <button onClick={handleLogout} className="btn btn-outline-light btn-sm px-3">Logout</button>
+      </div>
       </nav>
 
       <div className="container mt-4">
@@ -249,7 +288,7 @@ const HRDashboard = () => {
 
         {showAppModal && (
           <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-            <div className="modal-dialog modal-lg">
+            <div className="modal-dialog modal-xl">
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Applications</h5>

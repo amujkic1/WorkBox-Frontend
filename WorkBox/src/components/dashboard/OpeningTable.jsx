@@ -5,11 +5,36 @@ const OpeningTable = ({ openings, onRefreshOpenings }) => {
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedOpening, setSelectedOpening] = useState(null);
+  const [deleteAlert, setDeleteAlert] = useState(false);
   
   const formatDate = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleDateString('en-GB');
   };
+
+  const handleDeleteOpening = (id) => {
+  if (!window.confirm("Are you sure you want to delete this opening?")) return;
+
+  fetch(`http://localhost:8080/hr/openings/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+    .then((response) => {
+      if (response.ok) {
+        setDeleteAlert(true);
+        setTimeout(() => setDeleteAlert(false), 4000);
+        //alert("Opening successfully deleted.");
+        onRefreshOpenings();
+      } else {
+        alert("Failed to delete the opening.");
+      }
+    })
+    .catch((error) => {
+      console.error("Error deleting opening:", error);
+      alert("An error occurred while deleting the opening.");
+    });
+};
+
 
     const handleUpdateOpening = (data) => {
 
@@ -29,7 +54,6 @@ const OpeningTable = ({ openings, onRefreshOpenings }) => {
         startDate: data.startDate,
         endDate: data.endDate,
         result: "Pending",
-        //user ce inace biti hr koji kreira konkurs, implementirati poslije logina
         userId: 1
       })
     })
@@ -37,8 +61,8 @@ const OpeningTable = ({ openings, onRefreshOpenings }) => {
         if (response.ok) {
           const result = await response.json();
 
-              setShowUpdateModal(false); // Zatvori modal
-    onRefreshOpenings(); // Osvježi listu
+              setShowUpdateModal(false); 
+    onRefreshOpenings(); 
 
         } else {
           console.log("greska", response)
@@ -82,14 +106,25 @@ const OpeningTable = ({ openings, onRefreshOpenings }) => {
                   </span>
                 </td>
                 <td>
-                  <button className="btn btn-sm btn-primary me-2" onClick={() => {setSelectedOpening(opening); setShowUpdateModal(true)} }>Edit</button>
-                  <button className="btn btn-sm btn-danger">Close</button>
+                  <button className="btn btn-sm btn-primary me-2" onClick={() => {setSelectedOpening({  ...opening,
+                                                                                                            title: opening.openingName, // za kompatibilnost sa OpeningForm
+                                                                                                    });
+                   setShowUpdateModal(true)} }>Edit</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => handleDeleteOpening(opening.id)}>
+                      Close
+                    </button>
                 </td>
               </tr>
             ))
           )}
         </tbody>
       </table>
+      {deleteAlert && (
+        <div className="alert alert-success alert-dismissible fade show mt-3" role="alert">
+          <strong>Success!</strong> Opening has been deleted.
+          <button type="button" className="btn-close" onClick={() => setDeleteAlert(false)}></button>
+        </div>
+      )}
     </div>
 
     {showUpdateModal && (
