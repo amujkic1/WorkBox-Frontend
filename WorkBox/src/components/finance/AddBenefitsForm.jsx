@@ -9,7 +9,7 @@ const AddBenefitsForm = ({ onClose, onSuccess }) => {
   const [errorMessage, setErrorMessage] = useState('');  // Za greške pri unosu
 
   // Opcije za Tip i Status
-  const benefitTypes = ['Bonus', 'Zdravstveno osiguranje', 'Penzijski fond'];
+  const benefitTypes = ['Bonus', 'Transport', 'Meal', 'Other'];
   const benefitStatuses = ['Aktivan', 'Neaktivan'];
 
   useEffect(() => {
