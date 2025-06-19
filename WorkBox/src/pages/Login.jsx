@@ -13,6 +13,43 @@ const [password, setPassword] = useState('')
 const [errorMessage, setErrorMessage] = useState('');
 const navigate = useNavigate();
 
+// Function for check in
+const sendCheckInRecord = async (uuid) => {
+  const now = new Date();
+
+  const checkInDate = now.toISOString().split('T')[0]; // yyyy-mm-dd
+  const checkInTime = now.toTimeString().split(' ')[0]; // hh:mm:ss
+
+  const record = {
+    checkInDate: checkInDate,
+    checkInTime: checkInTime,
+    checkOutTime: checkInTime, // Za sada može biti isti kao check-in
+    user: {
+      userUUID: uuid // Backend mora podržavati mapiranje preko uuid-a
+    }
+  };
+
+  try {
+    const response = await fetch('http://localhost:8080/finance/check_in_record', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Cookies.get("token")}` // Ako backend koristi Bearer token
+      },
+      body: JSON.stringify(record)
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      console.error("Check-in error:", data);
+    } else {
+      console.log("Check-in successful.");
+    }
+  } catch (error) {
+    console.error("Error during check-in:", error);
+  }
+};
+
 const handleLogin = (e) => {
   e.preventDefault();
   fetch('http://localhost:8080/auth/authenticate', {
@@ -29,6 +66,11 @@ const handleLogin = (e) => {
  
       const payload = JSON.parse(atob(token.split('.')[1]));
       const role = payload.role;
+
+      const uuid = payload.uuid;
+      // Poziv funkcije koja šalje check-in record
+      await sendCheckInRecord(uuid);
+
 
       switch (role) {
         case 'HR':
