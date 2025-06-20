@@ -113,7 +113,8 @@ cd ..
 Run the following command:
 
 ```bash
-docker-compose up --build
+docker build -t workbox-frontend-dev .
+docker run -p 5173:5173 workbox-frontend-dev
 ```
 
 This will start all services (including Eureka, Gateway, and all microservices) in Docker container.
