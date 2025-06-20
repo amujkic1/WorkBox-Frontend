@@ -41,7 +41,7 @@ Funkcionalnosti pojedinih mikroservisa u okviru WorkBox aplikacije su navedene u
 
 ### Demo video and documentation
 Visit the link below for a demo of WorkBox:<br>
-https://drive.google.com/drive/folders/1E9YD5gGxO9Ka-4IJ9Kf9j-dZJ4RxEugM?usp=sharing
+https://drive.google.com/file/d/168xUg8cbI9JVriIKgVPolI1ijy0dUrzF/view?usp=sharing
 
 Complete documentation can be found at the following link:<br>
 https://drive.google.com/drive/folders/1E9YD5gGxO9Ka-4IJ9Kf9j-dZJ4RxEugM?usp=drive_link
